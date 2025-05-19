@@ -1,0 +1,1 @@
+export type GameState = 'loading' | 'menu' | 'characterSelect' | 'game';

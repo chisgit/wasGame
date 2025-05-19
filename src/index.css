@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes cherry-blossom-fall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(300px) rotate(180deg) translateX(50px);
+  }
+  100% {
+    transform: translateY(600px) rotate(360deg) translateX(-50px);
+  }
+}
+
+.cherry-blossoms::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle at center, #FFB7C5 0%, transparent 70%);
+  background-size: 15px 15px;
+  background-repeat: space;
+  animation: cherry-blossom-fall 15s linear infinite;
+  opacity: 0.3;
+}
+
+.cherry-blossoms::after {
+  content: '';
+  position: absolute;
+  top: -200px;
+  left: 100px;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle at center, #FFB7C5 0%, transparent 70%);
+  background-size: 10px 10px;
+  background-repeat: space;
+  animation: cherry-blossom-fall 20s linear infinite;
+  animation-delay: -5s;
+  opacity: 0.2;
+}
+
+/* Game Specific Styles */
+canvas {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Global Styles */
+body {
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+  overflow: hidden;
+}
+
+/* Add a cool hover effect to buttons */
+button {
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(1px);
+}
