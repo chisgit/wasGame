@@ -115,6 +115,41 @@ export class PowerupManager {
     });
   }
 
+  public spawnPowerupInPlayerRange(playerMaxX: number, playerMaxY: number, playerMinY: number, courtWidth: number) {
+    // Only spawn if there are no inactive powerups
+    if (this.powerups.some(p => !p.active && p.remainingTime > 0)) return;
+
+    // Pick a random powerup type
+    const powerupType = this.availablePowerups[Math.floor(Math.random() * this.availablePowerups.length)];
+
+    // Position randomly within player's reachable area
+    // Add slight randomness but ensure it's reachable
+    const margin = courtWidth * 0.05; // 5% margin from edges
+
+    // X position: Within player's side but reachable
+    const x = Math.random() * (playerMaxX - margin * 2) + margin;
+
+    // Y position: Between player's min and max height
+    const y = Math.random() * (playerMaxY - playerMinY) + playerMinY;
+
+    this.powerups.push({
+      type: powerupType.type,
+      x,
+      y,
+      active: false,
+      duration: powerupType.duration,
+      remainingTime: powerupType.duration,
+      color: powerupType.color,
+      icon: powerupType.icon
+    });
+
+    return {
+      type: powerupType.type,
+      x,
+      y
+    };
+  }
+
   public checkCollision(x: number, y: number, radius: number) {
     // Check if any powerup is colliding with the given position
     for (const powerup of this.powerups) {

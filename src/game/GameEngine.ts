@@ -205,7 +205,18 @@ export class GameEngine {
 
     // Spawn powerups occasionally - increased spawn rate for better testing
     if (Math.random() < 0.005) { // 5x more likely to spawn
-      this.powerupManager.spawnPowerup();
+      // Get player's movement constraints using public methods
+      const playerMaxX = this.player.getMaxX();
+      const playerMinY = this.player.getMinY();
+      const playerMaxY = this.player.getMaxY();
+      
+      // Spawn powerup within player's reachable area
+      this.powerupManager.spawnPowerupInPlayerRange(
+        playerMaxX,
+        playerMaxY,
+        playerMinY,
+        this.canvas.width
+      );
     }
   }
 
