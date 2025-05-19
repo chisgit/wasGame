@@ -23,6 +23,7 @@ export class GameEngine {
   private powerupManager: PowerupManager;
   private inputHandler: InputHandler;
   private physics: Physics;
+  private img: HTMLImageElement | null = null;
 
   // Game state
   private playerScore: number = 0;
@@ -56,6 +57,7 @@ export class GameEngine {
 
     // Initialize game state
     this.resetPositions();
+    this.loadImage();
   }
 
   private setupCanvas() {
@@ -94,6 +96,17 @@ export class GameEngine {
 
     // Update canvas size on window resize
     window.addEventListener('resize', updateCanvasSize);
+  }
+
+  private loadImage() {
+    this.img = new Image();
+    this.img.src = 'src/assets/badminton.png';
+    this.img.onload = () => {
+      this.resume();
+    };
+    this.img.onerror = () => {
+      console.error('Failed to load image');
+    };
   }
 
   public start() {
@@ -190,8 +203,8 @@ export class GameEngine {
     // Check for scoring
     this.checkScoring();
 
-    // Spawn powerups occasionally
-    if (Math.random() < 0.001) {
+    // Spawn powerups occasionally - increased spawn rate for better testing
+    if (Math.random() < 0.005) { // 5x more likely to spawn
       this.powerupManager.spawnPowerup();
     }
   }
@@ -226,6 +239,9 @@ export class GameEngine {
       console.log('Sound: hit');
     }
 
+    // Check player collision with powerup icons
+    this.checkPowerupCollisions();
+
     // Shuttlecock hitting court boundaries
     const courtBounds = this.court.getBounds();
     if (this.shuttlecock.x < courtBounds.left) {
@@ -240,6 +256,26 @@ export class GameEngine {
     if (this.shuttlecock.y < courtBounds.top) {
       this.shuttlecock.y = courtBounds.top;
       this.shuttlecock.vy *= -0.8;
+    }
+  }
+
+  // New method to check for powerup collisions
+  private checkPowerupCollisions() {
+    const playerBounds = this.player.getBounds();
+
+    // Check if player collides with any powerup icon
+    const collectedPowerup = this.powerupManager.checkCollisions(playerBounds);
+
+    if (collectedPowerup) {
+      // Create a particle effect when collecting powerup
+      this.particleSystem.createPowerupCollectEffect(
+        collectedPowerup.x,
+        collectedPowerup.y,
+        collectedPowerup.type
+      );
+
+      // Play collection sound
+      console.log(`Sound: collect-${collectedPowerup.type}`);
     }
   }
 
@@ -281,6 +317,8 @@ export class GameEngine {
   }
 
   private render() {
+    if (!this.img) return; // Prevent rendering before image is loaded
+
     // Clear canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -288,10 +326,10 @@ export class GameEngine {
     this.court.render(this.ctx);
 
     // Render player
-    this.player.render(this.ctx);
+    this.player.render(this.ctx, this.img);
 
     // Render opponent
-    this.opponent.render(this.ctx);
+    this.opponent.render(this.ctx, this.img);
 
     // Render shuttlecock
     this.shuttlecock.render(this.ctx);
