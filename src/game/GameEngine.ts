@@ -295,17 +295,44 @@ export class GameEngine {
     if (this.shuttlecock.y > this.court.getFloorY()) {
       // Determine which side the shuttlecock landed on
       const midX = this.canvas.width / 2;
-
+      
+      // Enhanced scoring logic
       if (this.shuttlecock.x < midX) {
         // Landed on player side
-        this.opponentScore++;
-        this.notifyScoreUpdate();
-        console.log('Sound: point');
+        if (this.lastHitter === 'player') {
+          // Player hit it last and it landed on their side - CPU gets the point
+          this.opponentScore++;
+          this.notifyScoreUpdate();
+          console.log('Sound: point-cpu');
+        } else if (this.lastHitter === 'opponent') {
+          // CPU failed to return properly - Player gets the point
+          this.playerScore++;
+          this.notifyScoreUpdate();
+          console.log('Sound: point-player');
+        } else {
+          // No one hit it - standard rules (serve fault)
+          this.opponentScore++;
+          this.notifyScoreUpdate();
+          console.log('Sound: point');
+        }
       } else {
         // Landed on opponent side
-        this.playerScore++;
-        this.notifyScoreUpdate();
-        console.log('Sound: point');
+        if (this.lastHitter === 'opponent') {
+          // CPU hit it last and it landed on their side - Player gets the point
+          this.playerScore++;
+          this.notifyScoreUpdate();
+          console.log('Sound: point-player');
+        } else if (this.lastHitter === 'player') {
+          // Player hit it and CPU failed to return - Player gets the point
+          this.playerScore++;
+          this.notifyScoreUpdate();
+          console.log('Sound: point-player');
+        } else {
+          // No one hit it - standard rules (serve fault)
+          this.playerScore++;
+          this.notifyScoreUpdate();
+          console.log('Sound: point');
+        }
       }
 
       // Reset positions for next rally

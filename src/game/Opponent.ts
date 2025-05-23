@@ -1,4 +1,5 @@
 import { Shuttlecock } from './Shuttlecock';
+import { drawAnimeRacket } from './Racket';
 
 export class Opponent {
   public x: number;
@@ -205,10 +206,8 @@ export class Opponent {
     return x0 + vx * timeToLand * airResistanceFactor;
   }
 
-  public render(ctx: CanvasRenderingContext2D) {
-    // Draw character body (simple placeholder for the actual character sprites)
-    ctx.fillStyle = '#87CEEB';
-    this.drawAnimeCharacter(ctx, this.x - this.width, this.y, this.width, this.height, '#87CEEB');
+  public render(ctx: CanvasRenderingContext2D, img: HTMLImageElement) {
+    this.drawAnimeCharacter(ctx, this.x - this.width, this.y, this.width, this.height, '#4A4A4A');
   }
 
   private drawAnimeCharacter(
@@ -253,6 +252,19 @@ export class Opponent {
     ctx.beginPath();
     ctx.ellipse(rightEyeX, eyeY, eyeSize / 2, eyeSize, 0, 0, Math.PI * 2);
     ctx.fill();
+
+    // Eyebrows
+    ctx.strokeStyle = '#4A4A4A';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(leftEyeX - eyeSize, eyeY - eyeSize);
+    ctx.lineTo(leftEyeX + eyeSize, eyeY - eyeSize * 1.5);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(rightEyeX - eyeSize, eyeY - eyeSize * 1.5);
+    ctx.lineTo(rightEyeX + eyeSize, eyeY - eyeSize);
+    ctx.stroke();
 
     // Mouth
     ctx.beginPath();
@@ -305,54 +317,8 @@ export class Opponent {
     );
     ctx.fill();
 
-    // Racket (simplified)
-    const racketX = x + armWidth / 2;
-    const racketY = armY + armHeight / 2;
-    const racketSize = width * 0.4;
-
-    ctx.strokeStyle = '#333';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.ellipse(
-      racketX,
-      racketY,
-      racketSize / 2,
-      racketSize / 1.5,
-      0,
-      0,
-      Math.PI * 2
-    );
-    ctx.stroke();
-
-    // Racket strings
-    ctx.strokeStyle = '#999';
-    ctx.lineWidth = 0.5;
-
-    // Horizontal strings
-    for (let i = 1; i < 5; i++) {
-      ctx.beginPath();
-      ctx.ellipse(
-        racketX,
-        racketY,
-        racketSize / 2.5,
-        racketSize / 2.5 * i / 4,
-        0,
-        0,
-        Math.PI * 2
-      );
-      ctx.stroke();
-    }
-
-    // Vertical strings
-    ctx.beginPath();
-    ctx.moveTo(racketX - racketSize / 2, racketY);
-    ctx.lineTo(racketX + racketSize / 2, racketY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(racketX, racketY - racketSize / 1.5);
-    ctx.lineTo(racketX, racketY + racketSize / 1.5);
-    ctx.stroke();
+    // Draw the racket
+    drawAnimeRacket(ctx, x, y, width, height);
   }
 
   public getBounds() {

@@ -22,23 +22,23 @@ export class Player {
   private animationFrame: number = 0;
   private blinkTimer: number = 0;
   private isBlinking: boolean = false;
-  
+
   constructor(canvasWidth: number, canvasHeight: number, characterIndex: number) {
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
     this.characterIndex = characterIndex;
-    
+
     this.courtFloorY = canvasHeight * 0.85;
     this.width = canvasWidth * 0.05;
     this.height = canvasHeight * 0.1;
-    
+
     this.x = canvasWidth * 0.25;
     this.y = this.courtFloorY - this.height;
-    
+
     this.baseSpeed = canvasWidth * 0.5;
     this.speed = this.baseSpeed;
   }
-  
+
   public updateDimensions(canvasWidth: number, canvasHeight: number) {
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
@@ -49,21 +49,51 @@ export class Player {
     this.y = this.courtFloorY - this.height;
     this.baseSpeed = canvasWidth * 0.5;
   }
-  
+
+  // Added public methods to access dimensions
+  public getWidth(): number {
+    return this.width;
+  }
+
+  public getHeight(): number {
+    return this.height;
+  }
+
+  public getMaxY(): number {
+    return this.courtFloorY - this.height;
+  }
+
+  public getMinY(): number {
+    return this.courtFloorY - this.height * 2;
+  }
+
+  public getMaxX(): number {
+    return this.canvasWidth / 2 - this.width / 2;
+  }
+
+  public getBounds() {
+    return {
+      x: this.x,
+      y: this.y,
+      width: this.width,
+      height: this.height
+    };
+  }
+
   public update(deltaTime: number, input: { left: boolean; right: boolean; up: boolean; down: boolean; hit: boolean }) {
     this.speed = this.speedBoost ? this.baseSpeed * 1.5 : this.baseSpeed;
-    
+
     if (input.left) this.x -= this.speed * deltaTime;
     if (input.right) this.x += this.speed * deltaTime;
     if (input.up) this.y -= this.speed * deltaTime;
     if (input.down) this.y += this.speed * deltaTime;
-    
+
     this.x = Math.max(0, Math.min(this.x, this.canvasWidth / 2 - this.width / 2));
     this.y = Math.max(this.courtFloorY - this.height * 2, Math.min(this.y, this.courtFloorY - this.height));
-    
+
     // Update animation frame
     this.animationFrame = (this.animationFrame + 1) % 60;
-    
+
     // Update blink timer
     this.blinkTimer += deltaTime;
     if (this.blinkTimer > 3) {
@@ -74,24 +104,24 @@ export class Player {
       }
     }
   }
-  
+
   public render(ctx: CanvasRenderingContext2D) {
     const characterColor = this.characterColors[this.characterIndex % this.characterColors.length];
     const hairStyle = this.hairStyles[this.characterIndex % this.hairStyles.length];
-    
+
     // Save context for character animation
     ctx.save();
-    
+
     // Add slight bounce animation
     const bounce = Math.sin(this.animationFrame * 0.1) * 2;
     ctx.translate(this.x, this.y + bounce);
-    
+
     // Draw character
     this.drawAnimeCharacter(ctx, 0, 0, this.width, this.height, characterColor, hairStyle);
-    
+
     // Restore context
     ctx.restore();
-    
+
     // Draw effects
     if (this.powerHit) {
       ctx.fillStyle = 'rgba(255, 165, 0, 0.5)';
@@ -99,7 +129,7 @@ export class Player {
       ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width, 0, Math.PI * 2);
       ctx.fill();
     }
-    
+
     if (this.speedBoost) {
       ctx.strokeStyle = 'rgba(0, 255, 255, 0.7)';
       ctx.lineWidth = 2;
@@ -118,7 +148,7 @@ export class Player {
       ctx.setLineDash([]);
     }
   }
-  
+
   private drawAnimeCharacter(
     ctx: CanvasRenderingContext2D,
     x: number,
@@ -131,7 +161,7 @@ export class Player {
     const headSize = width * 0.9;
     const headX = x + (width - headSize) / 2;
     const headY = y;
-    
+
     // Draw hair back
     ctx.fillStyle = hairStyle.color;
     if (hairStyle.twintails) {
@@ -139,7 +169,7 @@ export class Player {
     } else if (hairStyle.ponytail) {
       this.drawPonytail(ctx, headX, headY, headSize);
     }
-    
+
     // Draw head
     ctx.fillStyle = '#FFE0BD';
     ctx.beginPath();
@@ -153,7 +183,7 @@ export class Player {
       Math.PI * 2
     );
     ctx.fill();
-    
+
     // Draw hair front
     ctx.fillStyle = hairStyle.color;
     if (hairStyle.bangs) {
@@ -161,23 +191,23 @@ export class Player {
     } else if (hairStyle.spiky) {
       this.drawSpikyHair(ctx, headX, headY, headSize);
     }
-    
+
     // Draw eyes
     this.drawAnimeEyes(ctx, headX, headY, headSize);
-    
+
     // Draw mouth
     this.drawAnimeMouth(ctx, headX, headY, headSize);
-    
+
     // Draw body
     this.drawAnimeBody(ctx, x, y, width, height, color, headSize);
-    
+
     // Draw racket
     this.drawAnimeRacket(ctx, x, y, width, height);
   }
-  
+
   private drawTwintails(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
     const twintailCurve = Math.sin(this.animationFrame * 0.1) * 5;
-    
+
     // Left twintail
     ctx.beginPath();
     ctx.moveTo(x, y + size * 0.5);
@@ -194,7 +224,7 @@ export class Player {
       y + size * 1.2
     );
     ctx.fill();
-    
+
     // Right twintail
     ctx.beginPath();
     ctx.moveTo(x + size, y + size * 0.5);
@@ -212,10 +242,10 @@ export class Player {
     );
     ctx.fill();
   }
-  
+
   private drawPonytail(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
     const ponytailSway = Math.sin(this.animationFrame * 0.1) * 5;
-    
+
     ctx.beginPath();
     ctx.moveTo(x + size * 0.5, y + size * 0.3);
     ctx.quadraticCurveTo(
@@ -238,11 +268,11 @@ export class Player {
     );
     ctx.fill();
   }
-  
+
   private drawBangs(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
     ctx.beginPath();
     ctx.moveTo(x, y + size * 0.3);
-    
+
     // Left bang
     ctx.quadraticCurveTo(
       x + size * 0.2,
@@ -250,7 +280,7 @@ export class Player {
       x + size * 0.3,
       y + size * 0.5
     );
-    
+
     // Middle bang
     ctx.quadraticCurveTo(
       x + size * 0.5,
@@ -258,7 +288,7 @@ export class Player {
       x + size * 0.7,
       y + size * 0.5
     );
-    
+
     // Right bang
     ctx.quadraticCurveTo(
       x + size * 0.8,
@@ -266,47 +296,47 @@ export class Player {
       x + size,
       y + size * 0.3
     );
-    
+
     ctx.lineTo(x + size, y);
     ctx.lineTo(x, y);
     ctx.closePath();
     ctx.fill();
   }
-  
+
   private drawSpikyHair(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
     const spikes = 6;
     const spikeHeight = size * 0.4;
-    
+
     ctx.beginPath();
     ctx.moveTo(x, y + size * 0.5);
-    
+
     for (let i = 0; i < spikes; i++) {
       const spikeX = x + (size * i) / (spikes - 1);
       const randomHeight = spikeHeight * (0.8 + Math.random() * 0.4);
-      
+
       ctx.lineTo(spikeX, y - randomHeight);
       ctx.lineTo(spikeX + size / spikes / 2, y);
     }
-    
+
     ctx.lineTo(x + size, y + size * 0.5);
     ctx.closePath();
     ctx.fill();
   }
-  
+
   private drawAnimeEyes(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
     const eyeWidth = size * 0.15;
     const eyeHeight = size * 0.2;
     const eyeY = y + size * 0.4;
     const leftEyeX = x + size * 0.25;
     const rightEyeX = x + size * 0.75;
-    
+
     // Draw eye whites
     ctx.fillStyle = 'white';
     ctx.beginPath();
     ctx.ellipse(leftEyeX, eyeY, eyeWidth, eyeHeight, 0, 0, Math.PI * 2);
     ctx.ellipse(rightEyeX, eyeY, eyeWidth, eyeHeight, 0, 0, Math.PI * 2);
     ctx.fill();
-    
+
     // Draw pupils (adjust for blinking)
     if (!this.isBlinking) {
       ctx.fillStyle = '#4A4A4A';
@@ -314,7 +344,7 @@ export class Player {
       ctx.ellipse(leftEyeX, eyeY, eyeWidth * 0.5, eyeHeight * 0.5, 0, 0, Math.PI * 2);
       ctx.ellipse(rightEyeX, eyeY, eyeWidth * 0.5, eyeHeight * 0.5, 0, 0, Math.PI * 2);
       ctx.fill();
-      
+
       // Add shine to eyes
       ctx.fillStyle = 'white';
       ctx.beginPath();
@@ -333,11 +363,11 @@ export class Player {
       ctx.stroke();
     }
   }
-  
+
   private drawAnimeMouth(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
     ctx.strokeStyle = '#4A4A4A';
     ctx.lineWidth = 2;
-    
+
     // Draw cute smile
     ctx.beginPath();
     ctx.arc(
@@ -350,11 +380,11 @@ export class Player {
     );
     ctx.stroke();
   }
-  
+
   private drawAnimeBody(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, color: string, headSize: number) {
     // Draw uniform
     ctx.fillStyle = color;
-    
+
     // Torso
     ctx.beginPath();
     ctx.moveTo(x + width * 0.2, y + headSize * 0.8);
@@ -363,12 +393,12 @@ export class Player {
     ctx.lineTo(x + width * 0.1, y + height);
     ctx.closePath();
     ctx.fill();
-    
+
     // Sleeves
     const sleeveWidth = width * 0.2;
     const sleeveHeight = height * 0.4;
     const sleeveY = y + headSize * 0.8;
-    
+
     // Left sleeve
     ctx.beginPath();
     ctx.moveTo(x, sleeveY);
@@ -377,7 +407,7 @@ export class Player {
     ctx.lineTo(x - sleeveWidth * 0.2, sleeveY + sleeveHeight);
     ctx.closePath();
     ctx.fill();
-    
+
     // Right sleeve
     ctx.beginPath();
     ctx.moveTo(x + width, sleeveY);
@@ -387,12 +417,12 @@ export class Player {
     ctx.closePath();
     ctx.fill();
   }
-  
+
   private drawAnimeRacket(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) {
     const racketX = x + width - width * 0.2;
     const racketY = y + height * 0.4;
     const racketSize = width * 0.6;
-    
+
     // Draw handle
     ctx.strokeStyle = '#8B4513';
     ctx.lineWidth = width * 0.1;
@@ -400,18 +430,18 @@ export class Player {
     ctx.moveTo(racketX, racketY);
     ctx.lineTo(racketX, racketY + height * 0.3);
     ctx.stroke();
-    
+
     // Draw frame
     ctx.strokeStyle = '#FFD700';
     ctx.lineWidth = width * 0.05;
     ctx.beginPath();
     ctx.ellipse(racketX, racketY, racketSize / 2, racketSize / 1.2, 0, 0, Math.PI * 2);
     ctx.stroke();
-    
+
     // Draw strings
     ctx.strokeStyle = 'white';
     ctx.lineWidth = 1;
-    
+
     // Vertical strings
     for (let i = -3; i <= 3; i++) {
       ctx.beginPath();
@@ -419,7 +449,7 @@ export class Player {
       ctx.lineTo(racketX + i * racketSize / 8, racketY + racketSize / 2);
       ctx.stroke();
     }
-    
+
     // Horizontal strings
     for (let i = -4; i <= 4; i++) {
       ctx.beginPath();
@@ -428,16 +458,7 @@ export class Player {
       ctx.stroke();
     }
   }
-  
-  public getBounds() {
-    return {
-      x: this.x,
-      y: this.y,
-      width: this.width,
-      height: this.height
-    };
-  }
-  
+
   public reset() {
     this.x = this.canvasWidth * 0.25;
     this.y = this.courtFloorY - this.height;

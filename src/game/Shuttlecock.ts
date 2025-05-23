@@ -15,8 +15,8 @@ export class Shuttlecock {
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
 
-    // Increase shuttlecock size for better visibility
-    this.size = canvasWidth * 0.02; // Increased from 0.015
+    // Shuttlecock size reduced by 65%
+    this.size = canvasWidth * 0.007; // Reduced from 0.02 (65% reduction)
 
     // Initial position (center, above net)
     this.initialX = canvasWidth / 2;
@@ -35,7 +35,7 @@ export class Shuttlecock {
   public updateDimensions(canvasWidth: number, canvasHeight: number) {
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
-    this.size = canvasWidth * 0.02;
+    this.size = canvasWidth * 0.007;
     this.initialX = canvasWidth / 2;
     this.initialY = canvasHeight * 0.5;
     this.gravity = canvasHeight * 0.4;
@@ -66,9 +66,9 @@ export class Shuttlecock {
   }
 
   public render(ctx: CanvasRenderingContext2D) {
-    // Draw shuttlecock with improved visibility
+    // Draw shuttlecock as a simple circle
 
-    // Base (cork) with larger size
+    // Draw shuttlecock as a circle
     ctx.fillStyle = '#F5DEB3';
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
@@ -79,13 +79,13 @@ export class Shuttlecock {
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Feathers
+    // Simple feathers
     ctx.fillStyle = 'white';
 
     const featherLength = this.size * 2.5;
     const direction = Math.atan2(this.vy, this.vx) + Math.PI;
 
-    const numFeathers = 8;
+    const numFeathers = 6;
     for (let i = 0; i < numFeathers; i++) {
       const angle = direction + (Math.PI * 0.25) * (i / numFeathers - 0.5);
 
