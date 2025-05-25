@@ -76,53 +76,79 @@ const drawMiniCharacter = (
 };
 
 const drawBackHair = (ctx: CanvasRenderingContext2D, character: any, headX: number, headY: number, headSize: number) => {
-  if (character.hairStyle.twintails) {
-    // Detailed twintails
-    const twintailSize = headSize * 0.3;
-    // Left twintail
-    ctx.beginPath();
-    ctx.ellipse(headX - twintailSize * 0.5, headY + headSize * 0.7, twintailSize, twintailSize * 1.5, -0.3, 0, Math.PI * 2);
-    ctx.fill();
-    // Right twintail
-    ctx.beginPath();
-    ctx.ellipse(headX + headSize + twintailSize * 0.5, headY + headSize * 0.7, twintailSize, twintailSize * 1.5, 0.3, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (character.hairStyle.ponytail) {
-    // Flowing ponytail
-    ctx.beginPath();
-    ctx.ellipse(headX + headSize * 0.5, headY + headSize * 1.1, headSize * 0.25, headSize * 0.6, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // Main back hair
+  // Main back hair for all characters
   ctx.beginPath();
   ctx.ellipse(headX + headSize * 0.5, headY + headSize * 0.4, headSize * 0.65, headSize * 0.55, 0, 0, Math.PI * 2);
   ctx.fill();
+
+  // Character-specific back hair features
+  if (character.name === 'Sakura' && character.hairStyle.twintails) {
+    // Sakura's twintails - positioned and styled like in game
+    const twintailSize = headSize * 0.25;
+    // Left twintail
+    ctx.beginPath();
+    ctx.moveTo(headX - twintailSize * 0.3, headY + headSize * 0.5);
+    ctx.quadraticCurveTo(headX - twintailSize * 0.8, headY + headSize * 0.9, headX - twintailSize * 0.4, headY + headSize * 1.3);
+    ctx.quadraticCurveTo(headX - twintailSize * 0.2, headY + headSize * 1.4, headX, headY + headSize * 1.2);
+    ctx.fill();
+
+    // Right twintail
+    ctx.beginPath();
+    ctx.moveTo(headX + headSize + twintailSize * 0.3, headY + headSize * 0.5);
+    ctx.quadraticCurveTo(headX + headSize + twintailSize * 0.8, headY + headSize * 0.9, headX + headSize + twintailSize * 0.4, headY + headSize * 1.3);
+    ctx.quadraticCurveTo(headX + headSize + twintailSize * 0.2, headY + headSize * 1.4, headX + headSize, headY + headSize * 1.2);
+    ctx.fill();
+  } else if (character.name === 'Yumi' && character.hairStyle.ponytail) {
+    // Yumi's ponytail - positioned like in game
+    ctx.beginPath();
+    ctx.moveTo(headX + headSize * 0.5, headY + headSize * 0.3);
+    ctx.quadraticCurveTo(headX + headSize * 0.6, headY + headSize * 1.0, headX + headSize * 0.5, headY + headSize * 1.5);
+    ctx.quadraticCurveTo(headX + headSize * 0.7, headY + headSize * 1.4, headX + headSize * 0.8, headY + headSize * 1.2);
+    ctx.quadraticCurveTo(headX + headSize * 0.6, headY + headSize * 0.8, headX + headSize * 0.5, headY + headSize * 0.3);
+    ctx.fill();
+  }
+  // Takeshi has no back hair extensions (just the main hair)
 };
 
 const drawFrontHair = (ctx: CanvasRenderingContext2D, character: any, headX: number, headY: number, headSize: number) => {
-  if (character.hairStyle.bangs) {
-    // Stylized bangs
+  if (character.name === 'Sakura' && character.hairStyle.bangs) {
+    // Sakura's bangs - curved and feminine
     ctx.beginPath();
     ctx.moveTo(headX + headSize * 0.1, headY + headSize * 0.15);
-    ctx.quadraticCurveTo(headX + headSize * 0.3, headY, headX + headSize * 0.5, headY + headSize * 0.25);
-    ctx.quadraticCurveTo(headX + headSize * 0.7, headY, headX + headSize * 0.9, headY + headSize * 0.15);
+    ctx.quadraticCurveTo(headX + headSize * 0.3, headY - headSize * 0.05, headX + headSize * 0.5, headY + headSize * 0.25);
+    ctx.quadraticCurveTo(headX + headSize * 0.7, headY - headSize * 0.05, headX + headSize * 0.9, headY + headSize * 0.15);
     ctx.lineTo(headX + headSize * 0.8, headY + headSize * 0.3);
     ctx.quadraticCurveTo(headX + headSize * 0.5, headY + headSize * 0.4, headX + headSize * 0.2, headY + headSize * 0.3);
     ctx.closePath();
     ctx.fill();
-  } else if (character.hairStyle.spiky) {
-    // Dynamic spiky hair
-    for (let i = 0; i < 6; i++) {
-      const spikeX = headX + (headSize * i) / 5;
-      const spikeHeight = headSize * (0.3 + Math.sin(i) * 0.1);
+  } else if (character.name === 'Takeshi' && character.hairStyle.spiky) {
+    // Takeshi's spiky hair - multiple sharp spikes
+    const spikes = 6;
+    for (let i = 0; i < spikes; i++) {
+      const spikeX = headX + (headSize * i) / (spikes - 1);
+      const spikeHeight = headSize * (0.3 + Math.sin(i * 0.7) * 0.15); // Varied heights
+      const spikeWidth = headSize * 0.12;
+
       ctx.beginPath();
       ctx.moveTo(spikeX, headY + headSize * 0.2);
-      ctx.lineTo(spikeX + headSize * 0.1, headY - spikeHeight);
-      ctx.lineTo(spikeX + headSize * 0.2, headY + headSize * 0.2);
+      ctx.lineTo(spikeX + spikeWidth * 0.5, headY - spikeHeight);
+      ctx.lineTo(spikeX + spikeWidth, headY + headSize * 0.2);
       ctx.closePath();
       ctx.fill();
     }
+  } else if (character.name === 'Yumi' && character.hairStyle.bangs) {
+    // Yumi's bangs - straighter and more orderly than Sakura's
+    ctx.beginPath();
+    ctx.moveTo(headX + headSize * 0.15, headY + headSize * 0.2);
+    ctx.lineTo(headX + headSize * 0.2, headY + headSize * 0.05);
+    ctx.lineTo(headX + headSize * 0.4, headY + headSize * 0.1);
+    ctx.lineTo(headX + headSize * 0.6, headY + headSize * 0.1);
+    ctx.lineTo(headX + headSize * 0.8, headY + headSize * 0.05);
+    ctx.lineTo(headX + headSize * 0.85, headY + headSize * 0.2);
+    ctx.lineTo(headX + headSize * 0.75, headY + headSize * 0.35);
+    ctx.quadraticCurveTo(headX + headSize * 0.5, headY + headSize * 0.4, headX + headSize * 0.25, headY + headSize * 0.35);
+    ctx.closePath();
+    ctx.fill();
   }
 };
 
