@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Settings, Volume2, VolumeX, Info } from 'lucide-react';
+import { Settings, Volume2, VolumeX, Info, Smartphone } from 'lucide-react';
 import { useSound } from '../hooks/useSound';
+import { TouchInstructions } from './TouchInstructions';
 
 interface MenuProps {
   onPlay: () => void;
@@ -9,8 +10,32 @@ interface MenuProps {
 export const Menu = ({ onPlay }: MenuProps) => {
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [showInfo, setShowInfo] = useState<boolean>(false);
+  const [showTouchInstructions, setShowTouchInstructions] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   const { playSound, toggleMute } = useSound();
+
+  useEffect(() => {
+    // Detect if user is on mobile
+    const checkMobile = () => {
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        ('ontouchstart' in window) ||
+        (navigator.maxTouchPoints > 0);
+      setIsMobile(isMobileDevice);
+      
+      // Show touch instructions automatically on first mobile visit
+      if (isMobileDevice && !localStorage.getItem('touchInstructionsShown')) {
+        setTimeout(() => {
+          setShowTouchInstructions(true);
+          localStorage.setItem('touchInstructionsShown', 'true');
+        }, 1000);
+      }
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handlePlay = () => {
     playSound('click');
@@ -21,12 +46,21 @@ export const Menu = ({ onPlay }: MenuProps) => {
     playSound('click');
     setShowSettings(!showSettings);
     setShowInfo(false);
+    setShowTouchInstructions(false);
   };
 
   const handleToggleInfo = () => {
     playSound('click');
     setShowInfo(!showInfo);
     setShowSettings(false);
+    setShowTouchInstructions(false);
+  };
+
+  const handleShowTouchInstructions = () => {
+    playSound('click');
+    setShowTouchInstructions(true);
+    setShowSettings(false);
+    setShowInfo(false);
   };
 
   const handleToggleMute = () => {
@@ -59,17 +93,27 @@ export const Menu = ({ onPlay }: MenuProps) => {
       
       {/* Title and menu */}
       <div className="relative z-10 flex flex-col items-center">
-        <h1 className="text-6xl font-bold mb-12 text-white drop-shadow-lg">
+        <h1 className="text-4xl md:text-6xl font-bold mb-8 md:mb-12 text-white drop-shadow-lg text-center">
           <span className="text-[#FFB7C5]">Anime</span> Badminton
         </h1>
         
-        <div className="bg-white bg-opacity-80 p-8 rounded-xl shadow-2xl backdrop-blur-sm flex flex-col items-center space-y-4 w-80">
+        <div className="bg-white bg-opacity-80 p-6 md:p-8 rounded-xl shadow-2xl backdrop-blur-sm flex flex-col items-center space-y-4 w-72 md:w-80 mx-4">
           <button 
             onClick={handlePlay}
             className="w-full py-3 px-6 bg-[#FFB7C5] text-white font-bold rounded-lg hover:bg-opacity-90 transition-all transform hover:scale-105 active:scale-95 shadow-md"
           >
             Play Game
           </button>
+          
+          {isMobile && (
+            <button 
+              onClick={handleShowTouchInstructions}
+              className="w-full py-3 px-6 bg-[#98FB98] text-white font-bold rounded-lg hover:bg-opacity-90 transition-all transform hover:scale-105 active:scale-95 shadow-md flex items-center justify-center gap-2"
+            >
+              <Smartphone size={18} />
+              Touch Controls
+            </button>
+          )}
           
           <button 
             onClick={handleToggleSettings}
@@ -91,7 +135,7 @@ export const Menu = ({ onPlay }: MenuProps) => {
       
       {/* Settings panel */}
       {showSettings && (
-        <div className="absolute z-20 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white bg-opacity-90 p-6 rounded-xl shadow-2xl backdrop-blur-sm w-80">
+        <div className="absolute z-20 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white bg-opacity-90 p-6 rounded-xl shadow-2xl backdrop-blur-sm w-72 md:w-80 mx-4">
           <h2 className="text-2xl font-bold mb-4 text-[#4a3f78]">Settings</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -113,29 +157,38 @@ export const Menu = ({ onPlay }: MenuProps) => {
       
       {/* How to play panel */}
       {showInfo && (
-        <div className="absolute z-20 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white bg-opacity-90 p-6 rounded-xl shadow-2xl backdrop-blur-sm w-96 max-h-[70vh] overflow-y-auto">
+        <div className="absolute z-20 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white bg-opacity-90 p-6 rounded-xl shadow-2xl backdrop-blur-sm w-80 md:w-96 max-h-[70vh] overflow-y-auto mx-4">
           <h2 className="text-2xl font-bold mb-4 text-[#4a3f78]">How to Play</h2>
-          <div className="space-y-4 text-gray-700">
+          <div className="space-y-4 text-gray-700 text-sm md:text-base">
             <p><strong>Controls:</strong></p>
-            <p>Mouse/Keyboard:</p>
-            <ul className="list-disc pl-5">
-              <li>Move: Arrow keys or WASD</li>
-              <li>Hit: Spacebar or Left-Click</li>
-              <li>Power Shot: Shift + Spacebar or Right-Click</li>
-            </ul>
             
-            <p>Touch Controls:</p>
-            <ul className="list-disc pl-5">
-              <li>Tap where you want to move</li>
-              <li>Swipe to hit the shuttlecock</li>
-              <li>Double-tap for Power Shot</li>
-            </ul>
+            {!isMobile && (
+              <>
+                <p>Keyboard/Mouse:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Move: Arrow keys or WASD</li>
+                  <li>Hit: Spacebar or Left-Click</li>
+                  <li>Power Shot: Shift + Spacebar or Right-Click</li>
+                </ul>
+              </>
+            )}
+            
+            {isMobile && (
+              <>
+                <p>Touch Controls:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Move: Drag your finger</li>
+                  <li>Hit: Tap or swipe</li>
+                  <li>Power Shot: Double-tap or hold</li>
+                </ul>
+              </>
+            )}
             
             <p><strong>Scoring:</strong></p>
             <p>First to 21 points wins!</p>
             
             <p><strong>Power-ups:</strong></p>
-            <ul className="list-disc pl-5">
+            <ul className="list-disc pl-5 space-y-1">
               <li>🌀 Speed Boost - Move faster for 10 seconds</li>
               <li>🔥 Power Hit - Extra powerful shots for 3 hits</li>
               <li>✨ Misdirection - Makes shuttle trajectory unpredictable</li>
@@ -151,6 +204,11 @@ export const Menu = ({ onPlay }: MenuProps) => {
         </div>
       )}
       
+      {/* Touch Instructions Modal */}
+      {showTouchInstructions && (
+        <TouchInstructions onClose={() => setShowTouchInstructions(false)} />
+      )}
+      
       {/* Sound controls */}
       <div className="absolute bottom-4 right-4 z-10">
         <button 
@@ -160,6 +218,15 @@ export const Menu = ({ onPlay }: MenuProps) => {
           {isMuted ? <VolumeX className="text-gray-700" /> : <Volume2 className="text-gray-700" />}
         </button>
       </div>
+      
+      {/* Mobile indicator */}
+      {isMobile && (
+        <div className="absolute top-4 left-4 z-10">
+          <div className="bg-white bg-opacity-80 px-3 py-1 rounded-full">
+            <Smartphone size={16} className="text-[#4a3f78]" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
