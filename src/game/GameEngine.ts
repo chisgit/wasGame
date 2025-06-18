@@ -23,7 +23,6 @@ export class GameEngine {
   private powerupManager: PowerupManager;
   private inputHandler: InputHandler;
   private physics: Physics;
-  private img: HTMLImageElement | null = null;
 
   // Game state
   private playerScore: number = 0;
@@ -46,7 +45,7 @@ export class GameEngine {
     // Create game elements
     this.court = new Court(this.canvas.width, this.canvas.height);
     this.player = new Player(this.canvas.width, this.canvas.height, characterIndex);
-    this.opponent = new Opponent(this.canvas.width, this.canvas.height, 0.9); // Increased from default 0.75 to 0.9
+    this.opponent = new Opponent(this.canvas.width, this.canvas.height, 0.75);
     this.shuttlecock = new Shuttlecock(this.canvas.width, this.canvas.height);
     this.particleSystem = new ParticleSystem();
     this.powerupManager = new PowerupManager();
@@ -57,7 +56,6 @@ export class GameEngine {
 
     // Initialize game state
     this.resetPositions();
-    this.loadImage();
   }
 
   private setupCanvas() {
@@ -96,17 +94,6 @@ export class GameEngine {
 
     // Update canvas size on window resize
     window.addEventListener('resize', updateCanvasSize);
-  }
-
-  private loadImage() {
-    this.img = new Image();
-    this.img.src = 'src/assets/badminton.png';
-    this.img.onload = () => {
-      this.resume();
-    };
-    this.img.onerror = () => {
-      console.error('Failed to load image');
-    };
   }
 
   public start() {
@@ -203,14 +190,12 @@ export class GameEngine {
     // Check for scoring
     this.checkScoring();
 
-    // Spawn powerups occasionally - increased spawn rate for better testing
-    if (Math.random() < 0.005) { // 5x more likely to spawn
-      // Get player's movement constraints using public methods
+    // Spawn powerups occasionally
+    if (Math.random() < 0.005) {
       const playerMaxX = this.player.getMaxX();
       const playerMinY = this.player.getMinY();
       const playerMaxY = this.player.getMaxY();
       
-      // Spawn powerup within player's reachable area
       this.powerupManager.spawnPowerupInPlayerRange(
         playerMaxX,
         playerMaxY,
@@ -231,9 +216,6 @@ export class GameEngine {
 
       // Add hit particle effect
       this.particleSystem.createHitEffect(this.shuttlecock.x, this.shuttlecock.y);
-
-      // Simulate sound effect
-      console.log('Sound: hit');
     }
 
     // Opponent hitting shuttlecock
@@ -245,9 +227,6 @@ export class GameEngine {
 
       // Add hit particle effect
       this.particleSystem.createHitEffect(this.shuttlecock.x, this.shuttlecock.y);
-
-      // Simulate sound effect
-      console.log('Sound: hit');
     }
 
     // Check player collision with powerup icons
@@ -270,23 +249,16 @@ export class GameEngine {
     }
   }
 
-  // New method to check for powerup collisions
   private checkPowerupCollisions() {
     const playerBounds = this.player.getBounds();
-
-    // Check if player collides with any powerup icon
     const collectedPowerup = this.powerupManager.checkCollisions(playerBounds);
 
     if (collectedPowerup) {
-      // Create a particle effect when collecting powerup
       this.particleSystem.createPowerupCollectEffect(
         collectedPowerup.x,
         collectedPowerup.y,
         collectedPowerup.type
       );
-
-      // Play collection sound
-      console.log(`Sound: collect-${collectedPowerup.type}`);
     }
   }
 
@@ -296,67 +268,39 @@ export class GameEngine {
       // Determine which side the shuttlecock landed on
       const midX = this.canvas.width / 2;
       
-      // Enhanced scoring logic
       if (this.shuttlecock.x < midX) {
         // Landed on player side
         if (this.lastHitter === 'player') {
-          // Player hit it last and it landed on their side - CPU gets the point
           this.opponentScore++;
-          this.notifyScoreUpdate();
-          console.log('Sound: point-cpu');
         } else if (this.lastHitter === 'opponent') {
-          // CPU failed to return properly - Player gets the point
           this.playerScore++;
-          this.notifyScoreUpdate();
-          console.log('Sound: point-player');
         } else {
-          // No one hit it - standard rules (serve fault)
           this.opponentScore++;
-          this.notifyScoreUpdate();
-          console.log('Sound: point');
         }
       } else {
         // Landed on opponent side
         if (this.lastHitter === 'opponent') {
-          // CPU hit it last and it landed on their side - Player gets the point
           this.playerScore++;
-          this.notifyScoreUpdate();
-          console.log('Sound: point-player');
         } else if (this.lastHitter === 'player') {
-          // Player hit it and CPU failed to return - Player gets the point
           this.playerScore++;
-          this.notifyScoreUpdate();
-          console.log('Sound: point-player');
         } else {
-          // No one hit it - standard rules (serve fault)
           this.playerScore++;
-          this.notifyScoreUpdate();
-          console.log('Sound: point');
         }
       }
 
-      // Reset positions for next rally
+      this.notifyScoreUpdate();
       this.resetPositions();
     }
   }
 
   private resetPositions() {
-    // Reset player position
     this.player.reset();
-
-    // Reset opponent position
     this.opponent.reset();
-
-    // Reset shuttlecock position (starting serve)
     this.shuttlecock.reset();
-
-    // Reset last hitter
     this.lastHitter = null;
   }
 
   private render() {
-    if (!this.img) return; // Prevent rendering before image is loaded
-
     // Clear canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -364,10 +308,10 @@ export class GameEngine {
     this.court.render(this.ctx);
 
     // Render player
-    this.player.render(this.ctx, this.img);
+    this.player.render(this.ctx);
 
     // Render opponent
-    this.opponent.render(this.ctx, this.img);
+    this.opponent.render(this.ctx);
 
     // Render shuttlecock
     this.shuttlecock.render(this.ctx);
@@ -385,7 +329,6 @@ export class GameEngine {
   }
 
   private renderTrajectory() {
-    // Render a dotted line showing predicted trajectory of shuttlecock
     const positions = this.physics.predictTrajectory(
       this.shuttlecock.x,
       this.shuttlecock.y,
@@ -395,7 +338,6 @@ export class GameEngine {
       this.court.getFloorY()
     );
 
-    // Draw the trajectory
     this.ctx.beginPath();
     this.ctx.setLineDash([5, 5]);
     this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
@@ -416,7 +358,6 @@ export class GameEngine {
   // Event subscription methods
   public onScoreUpdate(callback: (playerScore: number, opponentScore: number) => void) {
     this.scoreUpdateCallbacks.push(callback);
-    // Return a function to unsubscribe
     return () => {
       this.scoreUpdateCallbacks = this.scoreUpdateCallbacks.filter(cb => cb !== callback);
     };
@@ -424,7 +365,6 @@ export class GameEngine {
 
   public onPowerupChange(callback: (powerup: string | null) => void) {
     this.powerupChangeCallbacks.push(callback);
-    // Return a function to unsubscribe
     return () => {
       this.powerupChangeCallbacks = this.powerupChangeCallbacks.filter(cb => cb !== callback);
     };
